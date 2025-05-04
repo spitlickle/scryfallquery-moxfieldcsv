@@ -30,22 +30,29 @@ shift $((OPTIND-1))
 
 # Function to show examples and let user pick one
 show_examples() {
-  echo
-  for key in "\${!EXAMPLES[@]}"; do
-    printf "  %s) %s\n" "$key" "\${EXAMPLES[$key]%%|*}"
+  echo -e "\nExamples:"
+  # Sort keys alphabetically
+  for key in $(printf "%s\n" "${!EXAMPLES[@]}" | sort); do
+    printf "  [%s]=\"%s\"\n" "$key" "${EXAMPLES[$key]%%|*}"
   done
+
   read -rp "Select example (or q to cancel): " sel
   if [[ "$sel" =~ ^[Qq]$ ]]; then
     return 1
   fi
-  if [[ -n "\${EXAMPLES[$sel]}" ]]; then
-    QUERY="\${EXAMPLES[$sel]#*|}"
+
+  if [[ -n "${EXAMPLES[$sel]}" ]]; then
+    example_query="${EXAMPLES[$sel]#*|}"
+    echo -e "\nExample query:\n$example_query"
+    read -rp $'\nEnter your Scryfall search (or press Enter to use the example): ' input
+    QUERY="${input:-$example_query}"
     return 0
   else
     echo "Invalid selection." >&2
     return 1
   fi
 }
+
 
 # Prompt if no QUERY provided via -q
 if [[ -z "$QUERY" ]]; then
